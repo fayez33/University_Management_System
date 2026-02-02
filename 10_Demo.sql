@@ -1,7 +1,7 @@
 --  Register hadi
 EXEC sp_AddNewStudent 
     @FirstName = 'hadi', 
-    @LastName = 'Wonderland', 
+    @LastName = 'Amasha', 
     @Email = 'hadi@uni.edu', 
     @Phone = '555-9999', 
     @DOB = '2005-01-01', 
@@ -69,4 +69,5 @@ SELECT * FROM View_Unpaid_Tuition WHERE email = 'hadi@uni.edu'; -- defined view
 --  Withdraw hadi
 DECLARE @hadiID INT = (SELECT person_id FROM Person WHERE email = 'hadi@uni.edu');
 EXEC sp_WithdrawStudent @StudentID = @hadiID, @Reason = 'Demo Complete';
+
 SELECT student_id, is_active FROM Student WHERE student_id = @hadiID; -- she is still present but inactive
