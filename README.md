@@ -81,7 +81,7 @@ This is where the system handles the heavy lifting of student performance tracki
     * **Role:** Tracks revenue and student debt.
     * **Data:** `Total_Amount`, `Due_Date`, and `Is_Paid` status.
  
-    * ## 🚀 Key Features & Functionalities
+## 🚀 Key Features & Functionalities
 
 This project moves beyond simple CRUD operations by implementing a reactive, event-driven architecture directly within the database engine.
 
