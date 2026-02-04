@@ -1,6 +1,5 @@
 
 -- CLEANUP (Ensure test is repeatable)
-
 DECLARE @ExistingPersonID INT;
 SELECT @ExistingPersonID = person_id FROM Person WHERE email = 'test.user@uni.edu';
 
@@ -41,27 +40,8 @@ EXEC sp_EnrollStudent @StudentID = @NewStudentID, @SectionID = 2;
 PRINT 'Attempting to enroll in CS101 (No Prereqs)...';
 EXEC sp_EnrollStudent @StudentID = @NewStudentID, @SectionID = 1;
 
--- ==========================================================
+
 -- TEST 3: Assignments & Auto-Grading
--- ==========================================================
-PRINT '--- Test 3: Assignments & Auto-Grading ---';
-
--- 3.0 PREP: Clear existing assignments for Section 1 so we have "Weight" space
--- (Seed data has 100% used up, so we must make room for the new quiz)
-DELETE FROM Student_Submission WHERE assignment_id IN (SELECT assignment_id FROM Assignment WHERE section_id = 1);
-DELETE FROM Assignment WHERE section_id = 1;
-
--- 3.1 Professor creates a new Assignment for CS101 (Section 1)
--- Title: 'Surprise Quiz', Weight: 20%
-EXEC sp_CreateAssignment 
-    @SectionID = 1, 
-    @Title = 'Surprise Quiz', 
-    @MaxPoints = 100.00, 
-    @Weight = 20.00;
-
--- ==========================================================
--- TEST 3: Assignments & Auto-Grading (FIXED)
--- ==========================================================
 PRINT '--- Test 3: Assignments & Auto-Grading ---';
 
 -- 3.0 PREP: Clear existing assignments for Section 1
@@ -75,7 +55,7 @@ EXEC sp_CreateAssignment
     @MaxPoints = 100.00, 
     @Weight = 20.00;
 
--- 3.1b FIX: Fetch the ID properly (Scope_Identity cannot see inside the proc)
+-- 3.1b Fetch the ID properly (Scope_Identity cannot see inside the proc)
 DECLARE @NewAssignmentID INT;
 SELECT TOP 1 @NewAssignmentID = assignment_id 
 FROM Assignment 
@@ -110,9 +90,7 @@ BEGIN
 END
 
 
--- ==========================================================
--- TEST 4: Finance Module (NEW FEATURE)
--- ==========================================================
+-- TEST 4: Finance Module
 PRINT '--- Test 4: Tuition & Billing ---';
 
 -- 4.1 Generate Bill for Fall 2025
@@ -133,9 +111,7 @@ SET @Balance = dbo.fn_GetStudentBalance(@NewStudentID);
 PRINT 'Balance After Payment: $' + CAST(@Balance AS VARCHAR);
 
 
--- ==========================================================
--- TEST 5: Time Conflict Trigger (Existing Logic)
--- ==========================================================
+-- TEST 5: Time Conflict Trigger
 PRINT '--- Test 5: Time Conflict Trigger ---';
 
 -- 5.1 Create a temporary conflicting section (Same time as Section 1: MWF 10:00)
@@ -156,9 +132,7 @@ END CATCH
 DELETE FROM Section WHERE section_id = @ConflictingSectionID;
 
 
--- ==========================================================
--- TEST 6: Waitlist Automation (Existing Logic)
--- ==========================================================
+-- TEST 6: Waitlist Automation
 PRINT '--- Test 6: Waitlist Automation ---';
 
 -- Setup: Section 3 is FULL. Student 7 is on Waitlist.
@@ -177,9 +151,7 @@ BEGIN
 END
 
 
--- ==========================================================
 -- TEST 7: Views & Reporting
--- ==========================================================
 PRINT '--- Test 7: Verifying Views ---';
 
 PRINT 'View_Student_Transcript (Now shows Balance & Credits):';
@@ -187,17 +159,9 @@ SELECT TOP 1 * FROM View_Student_Transcript
 WHERE student_id = @NewStudentID;
 
 
--- ==========================================================
 -- TEST 8: Withdrawal (Soft Delete)
--- ==========================================================
 PRINT '--- Test 8: Withdraw Student ---';
 
--- ==========================================================
--- TEST 8: Withdrawal (Soft Delete)
--- ==========================================================
-PRINT '--- Test 8: Withdraw Student ---';
-
--- ERROR WAS HERE: Removed '@Semester' because the procedure doesn't use it anymore
 EXEC sp_WithdrawStudent 
     @StudentID = @NewStudentID, 
     @Reason = 'Transferring out';
@@ -207,10 +171,7 @@ SELECT student_id, is_active FROM Student WHERE student_id = @NewStudentID;
 PRINT '>>> TEST SUITE COMPLETE.';
 GO
 
+-- Ad-hoc Reporting Checks
 SELECT * FROM View_Unpaid_Tuition;
-
--- See how students did on the "Surprise Quiz"
 SELECT * FROM View_Detailed_Gradebook WHERE assignment_name = 'Surprise Quiz';
-
--- See who is #1 on the waitlist for Physics
 SELECT * FROM View_Waitlist_Queue WHERE course_id = 'PHYS101';
